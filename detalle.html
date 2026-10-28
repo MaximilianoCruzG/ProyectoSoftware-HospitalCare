@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha del Paciente - #EXP-{{ p.id }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/static/bd.css">
+</head>
+<body style="background: #f0f2f5;">
+    <div class="main-content" style="margin: 2rem auto; max-width: 850px; padding: 20px;">
+        
+        <!-- CABECERA -->
+        <div class="page-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div class="title" style="font-size: 1.5rem; font-weight: bold; color: #1a1a1a;">
+                <i class="fas fa-file-medical"></i> Expediente #EXP-{{ p.id }}
+            </div>
+            <button class="btn btn-outline" onclick="window.location.href='/bd'">Volver al Dashboard</button>
+        </div>
+
+        <div class="stat-card" style="background: #fff; padding: 35px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid #4e44e7;">
+            
+            <!-- SECCIÓN: DATOS GENERALES -->
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; margin-bottom: 30px;">
+                <div>
+                    <p style="color: #888; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Información del Paciente</p>
+                    <h2 style="color: #4e44e7; margin: 10px 0;">{{ p.nombre_paciente }}</h2>
+                    <p><strong>NSS:</strong> {{ p.nss }}</p> 
+                    <p><strong>Edad:</strong> {{ p.edad }} años</p>
+                    <p><strong>Sangre:</strong> <span style="background: #e0f7fa; color: #006064; padding: 3px 10px; border-radius: 8px; font-weight: bold;">{{ p.tipo_sangre }}</span></p>
+                </div>
+
+                <div style="text-align: right; border-left: 1px solid #eee; padding-left: 25px;">
+                    <div style="margin-bottom: 15px;">
+                        <p style="color: #888; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Médico Responsable</p>
+                        <h4 style="margin: 5px 0;">Dr. {{ p.nombre_doctor }}</h4>
+                        <small style="color: #666;">ID Personal: #{{ p.doctor_id }}</small>
+                    </div>
+                    <div>
+                        <p style="color: #888; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Enfermería Responsable</p>
+                        <h4 style="margin: 5px 0;">Enf. {{ p.nombre_enfermera }}</h4>
+                        <small style="color: #666;">ID Personal: #{{ p.enfermera_id }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN DE CONTENIDO CLÍNICO (Directo y Descifrado) -->
+            <div id="contenedor-expediente">
+                
+                <!-- DIAGNÓSTICO -->
+                <div style="background: #f8f9ff; padding: 25px; border-radius: 15px; border-left: 5px solid #4e44e7; margin-bottom: 30px;">
+                    <h4 style="margin-top: 0; color: #4e44e7;"><i class="fas fa-stethoscope"></i> Diagnóstico Médico Inicial</h4>
+                    <p style="font-size: 1.05rem; line-height: 1.6; color: #333;">{{ diag_descifrado }}</p>
+                </div>
+
+                <!-- HISTORIAL DE NOTAS -->
+                <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 25px;">
+                    <h3 style="margin-bottom: 20px;"><i class="fas fa-history"></i> Notas de Evolución</h3>
+                    
+                    <div id="lista-actualizaciones">
+                        {% for act in actualizaciones %}
+                        <div style="background: #fff; border: 1px solid #eef; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size: 0.8rem; font-weight: bold; color: #4e44e7;">{{ act.fecha }}</span>
+                                <span style="font-size: 0.75rem; color: #888;"><i class="fas fa-user-edit"></i> {{ act.autor }}</span>
+                            </div>
+                            <p style="margin: 0; color: #444; line-height: 1.5;">{{ act.contenido }}</p>
+                        </div>
+                        {% else %}
+                        <p style="color: #999; font-style: italic; text-align: center;">No hay notas registradas en este expediente.</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- FORMULARIO DIRECTO PARA AGREGAR NOTA -->
+                    <div style="background: #fdfdfd; border: 1px solid #eee; padding: 25px; border-radius: 15px; margin-top: 30px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                        <h4 style="margin-top: 0; color: #333;"><i class="fas fa-edit"></i> Nueva Actualización</h4>
+                        <form action="/agregar_actualizacion/{{ p.id }}" method="POST">
+                            <textarea name="contenido" placeholder="Escriba aquí los avances del paciente..." required 
+                                      style="width: 100%; height: 120px; border: 2px solid #eef; border-radius: 10px; padding: 15px; margin-bottom: 15px; font-family: inherit; resize: vertical;"></textarea>
+                            
+                            <button type="submit" 
+                                    style="background: #28a745; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-save"></i> Guardar Nota Médica
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AUDITORÍA FINAL -->
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px dashed #ddd; display: flex; justify-content: space-between; font-size: 0.75rem; color: #999;">
+                <div><i class="fas fa-clock"></i> <strong>Última actualización:</strong> {{ p.ultima_actualizacion }}</div>
+                <div><i class="fas fa-id-badge"></i> <strong>Modificado por:</strong> {{ p.actualizado_por }}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

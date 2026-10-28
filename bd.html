@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - ClinicaSecure</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- SweetAlert2 para alertas profesionales -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/static/bd.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>Clinica<span>Secure</span></h1>
+            </div>
+            <div class="nav-menu">
+                <div class="menu-heading">Gestión Médica</div>
+                <div class="nav-item active">
+                    <i class="fas fa-notes-medical"></i>
+                    <span>Expedientes</span>
+                </div>
+            </div>
+            <a href="/logout" class="nav-item" style="color: #ff4d4d; margin-top: auto; text-decoration: none;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+
+        <div class="header">
+            <div class="notification">
+                <i class="fas fa-bell"></i>
+                <div class="badge">!</div> 
+            </div>
+            <div class="header-actions">
+                <div class="user-profile">
+                    <div class="profile-img">{{ session['nombre_completo'][0] }}</div>
+                    <div class="user-info">
+                        <div class="user-name">{{ session['nombre_completo'] }}</div>
+                        <div class="user-role">{{ session['rol'] }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-title">
+                <div class="title">Panel de Control de Expedientes</div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="openModal()">
+                        <i class="fas fa-plus"></i> Nuevo Registro
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="card-title">
+                    <h3><i class="fas fa-database"></i> Registros en Base de Datos</h3>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Paciente</th>
+                            <th>NSS (Auditado)</th>
+                            <th>Personal Responsable</th>
+                            <th>Última Actualización</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exp in expedientes %}
+<tr>
+    <td><strong>#EXP-{{ exp.id }}</strong></td>
+    <td>{{ exp.nombre_paciente }}</td>
+    <td><code>*******{{ exp.nss[-4:] }}</code></td>
+    <td>
+        <!-- Mostramos ambos responsables en una sola celda -->
+        <div style="font-size: 0.8rem;">
+            <div><i class="fas fa-user-md"></i> Dr. {{ exp.nombre_doctor }}</div>
+            <div style="color: #666;"><i class="fas fa-user-nurse"></i> Enf. {{ exp.nombre_enfermera }}</div>
+        </div>
+    </td>
+    <td>
+        <div style="font-size: 0.75rem;">
+            <div><i class="far fa-calendar-alt"></i> {{ exp.ultima_actualizacion.strftime('%d/%m/%Y %H:%M') }}</div>
+            <div style="color: #4e44e7;">Mod: {{ exp.actualizado_por }}</div>
+        </div>
+    </td>
+    <td>
+        <!-- Botones de acción -->
+        <button onclick="verificarAcceso('{{ exp.id }}')" class="btn-action view"><i class="fas fa-unlock-alt"></i></button>
+    </td>
+</tr>
+{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REGISTRO -->
+    <div id="modalExpediente" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+        <div class="modal-content animate__animated animate__zoomIn" style="background:#fff; margin:1% auto; padding:30px; border-radius:20px; width:600px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h2 style="color: #4e44e7; margin-bottom:1.2rem; display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-shield-virus"></i> Nuevo Expediente Cifrado
+            </h2>
+            <form action="/guardar_expediente" method="POST" id="formRegistro">
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">NOMBRE COMPLETO (Solo letras)</label>
+                    <input type="text" name="nombre" id="inputNombre" required placeholder="Ej. Juan Pérez García" class="form-control">
+                </div>
+
+                <div style="display:flex; gap:15px; margin-bottom: 1rem;">
+                    <div style="flex:2;">
+                        <label class="form-label">NSS (11 DÍGITOS EXACTOS)</label>
+                        <input type="text" name="nss" id="inputNSS" maxlength="11" required placeholder="01234567890" class="form-control">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="form-label">EDAD</label>
+                        <input type="number" name="edad" required class="form-control">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="form-label">SANGRE</label>
+                        <select name="sangre" class="form-control">
+                            <option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:15px; margin-bottom: 1rem;">
+    <!-- Selector de Médicos -->
+    <div style="flex:1;">
+    <label class="form-label">MÉDICO RESPONSABLE</label>
+    <select name="doctor_id" required class="form-control">
+        <option value="" disabled selected>Seleccione Médico...</option>
+        {% for emp in personal %}
+            {# Definimos los roles autorizados basados en image_cccbde.png #}
+            {% set roles_autorizados = ['Médico Especialista', 'Médico General', 'Medico Especialista', 'Medico General', 'Dr.', 'Doctor'] %}
+            
+            {% if emp.rol in roles_autorizados %}
+                <option value="{{ emp.id }}">
+                    {{ emp.rol }}: {{ emp.nombre }} {{ emp.ap_paterno }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+</div>>
+
+    <!-- Selector de Enfermeras (Sin acentos) -->
+<div style="flex:1;">
+    <label class="form-label">ENFERMERA RESPONSABLE</label>
+    <select name="enfermera_id" required class="form-control">
+        <option value="" disabled selected>Seleccione Enf...</option>
+        {% for emp in personal %}
+            {# Convertimos a minúsculas, quitamos espacios y quitamos el acento de la í #}
+            {% set rol_limpio = emp.rol|lower|trim|replace('í', 'i') %}
+            
+            {% if rol_limpio == 'enfermeria' %}
+                <option value="{{ emp.id }}">Enf. {{ emp.nombre }} {{ emp.ap_paterno }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+</div>
+</div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">DIAGNÓSTICO INICIAL</label>
+                    <textarea name="diagnostico" rows="3" required class="form-control" style="font-family: inherit;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnGuardar" style="width:100%; padding:15px;">
+                    <i class="fas fa-lock"></i> Firmar y Guardar con AES-256
+                </button>
+                <button type="button" onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#999; cursor:pointer;">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- LÓGICA DE MODAL ---
+        function openModal() { document.getElementById('modalExpediente').style.display = 'block'; }
+        function closeModal() { document.getElementById('modalExpediente').style.display = 'none'; }
+
+        // --- VALIDACIONES DE ENTRADA (SOLO LETRAS / SOLO 11 NÚMEROS) ---
+        const inputNombre = document.getElementById('inputNombre');
+        const inputNSS = document.getElementById('inputNSS');
+
+        inputNombre.addEventListener('keypress', (e) => {
+            if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(e.key)) e.preventDefault();
+        });
+
+        inputNSS.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+        // --- SWEETALERT PARA VER DETALLE (2FA) ---
+        function verificarAcceso(id) {
+    Swal.fire({
+        title: 'Seguridad de Nivel 2',
+        text: 'Ingresa el código para desbloquear el expediente:',
+        input: 'text',
+        inputAttributes: { maxlength: 6, autofocus: 'true', style: 'text-align: center;' },
+        showCancelButton: true,
+        confirmButtonText: 'Validar y Abrir',
+        confirmButtonColor: '#4e44e7',
+        showLoaderOnConfirm: true,
+        preConfirm: (code) => {
+            // Enviamos al API que ya tenemos en Python
+            return fetch(`/api/desbloquear_expediente/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codigo: code })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error) });
+                }
+                return response.json(); // Si el código es correcto, recibimos los datos
+            })
+            .catch(error => {
+                Swal.showValidationMessage(`Error: ${error.message}`);
+            });
+        }
+    }).then((result) => {
+        // SI TODO SALIÓ BIEN, REDIRIGIMOS DIRECTO
+        if (result.isConfirmed) {
+            // Redirige a la página de detalle pasando un parámetro para que Python sepa que debe descifrar
+            window.location.href = `/ver_detalle/${id}?auth=success`;
+        }
+    });
+}
+
+        // --- FEEDBACK DE ENVÍO ---
+        document.getElementById('formRegistro').onsubmit = function() {
+            const btn = document.getElementById('btnGuardar');
+            btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Generando Llaves AES-256...';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+        };
+    </script>
+
+    <style>
+        /* Estilos rápidos para complementar tu bd.css */
+        .form-label { font-weight:600; font-size:0.75rem; color:#555; display: block; margin-bottom: 5px; }
+        .form-control { width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; outline-color: #4e44e7; }
+        .btn-action { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .btn-action.view { background: #eef1ff; color: #4e44e7; }
+        .btn-action.edit { background: #e8f5e9; color: #2e7d32; }
+        .btn-action:hover { filter: brightness(0.9); transform: translateY(-2px); }
+        .data-table th { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    </style>
+</body>
+</html>

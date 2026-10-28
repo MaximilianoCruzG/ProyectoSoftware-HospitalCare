@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Administración - ClinicaSecure</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/bd.css">
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <div class="logo">
+            <h1>Clinica<span>Secure</span></h1>
+        </div>
+        <div class="nav-menu">
+            <div class="menu-heading">Seguridad & Auditoría</div>
+            <div class="nav-item active">
+                <i class="fas fa-user-shield"></i>
+                <span>Aprobación Empleados</span>
+            </div>
+            <div class="menu-heading">Sistema</div>
+            <a href="/" style="text-decoration: none; color: inherit;">
+                <div class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="notification">
+                <i class="fas fa-bell"></i>
+                <div class="badge">!</div> 
+            </div>
+        <div class="header-actions">
+            
+            <div class="user-profile">
+                <div class="profile-img">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Administrador</div>
+                    <div class="user-role">Control de Accesos</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-title">
+            <div class="title">Control de Accesos y Personal</div>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-value" id="totalEmp">0</div>
+                        <div class="card-label">Empleados Totales</div>
+                    </div>
+                    <div class="card-icon purple">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                </div>
+                <div class="card-change positive">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Base de datos activa</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-value" id="pendingCount">0</div>
+                        <div class="card-label">Esperando Aprobación</div>
+                    </div>
+                    <div class="card-icon orange">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                </div>
+                <div class="card-change negative">
+                    <span>Requieren validación manual</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="card-title">
+                <h3><i class="fas fa-user-check"></i> Solicitudes de Registro Recientes</h3>
+            </div>
+            <table class="data-table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Rol / Departamento</th>
+            <th>Correo Electrónico</th>
+            <th>Estado</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody id="employeeTable"> </tbody>
+</table>
+
+<script>
+    async function loadData() {
+        const res = await fetch('/admin/users');
+        const users = await res.json();
+        const table = document.getElementById('employeeTable');
+        table.innerHTML = '';
+        
+        let pending = 0;
+        document.getElementById('totalEmp').innerText = users.length;
+
+        users.forEach(user => {
+            if(!user.esta_aprobado) pending++;
+            
+            table.innerHTML += `
+                <tr>
+                    <td><strong>${user.nombre} ${user.ap_paterno}</strong></td>
+                    <td>@${user.usuario}</td>
+                    <td>${user.rol} <br> </td>
+                    <td>${user.correo}</td>
+                    <td>
+                        <span class="status ${user.esta_aprobado ? 'active' : ''}" 
+                              style="background-color: ${user.esta_aprobado ? '' : '#fff3cd'}; color: ${user.esta_aprobado ? '' : '#856404'};">
+                            <i class="fas ${user.esta_aprobado ? 'fa-check-shield' : 'fa-clock'}"></i> 
+                            ${user.esta_aprobado ? 'Aprobado' : 'Pendiente'}
+                        </span>
+                    </td>
+                    <td>
+                        ${!user.esta_aprobado ? 
+                            `<button class="btn btn-primary btn-sm" onclick="approve(${user.id})">
+                                <i class="fas fa-user-check"></i> Aprobar
+                             </button>` : 
+                            '<span style="color: #2ecc71; font-weight: bold;"><i class="fas fa-check-double"></i> Validado</span>'}
+                    </td>
+                </tr>
+            `;
+        });
+        document.getElementById('pendingCount').innerText = pending;
+    }
+
+    async function approve(id) {
+        // Esta ruta ahora coincide 100% con el app.py
+        const res = await fetch(`/admin/approve/${id}`, { method: 'POST' });
+        if(res.ok) loadData();
+    }
+
+    document.addEventListener('DOMContentLoaded', loadData);
+</script>
+</body>
+</html>

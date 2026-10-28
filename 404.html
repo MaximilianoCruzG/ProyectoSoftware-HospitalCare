@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA DE SEGURIDAD - ACCESO BLOQUEADO</title>
+    <style>
+        :root {
+            --rojo-alerta: #d32f2f;
+            --blanco: #ffffff;
+            --negro: #121212;
+        }
+
+        body {
+            background-color: var(--negro);
+            color: var(--blanco);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            background-color: var(--blanco);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(211, 47, 47, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            border: 5px solid var(--negro);
+        }
+
+        /* Estilo basado en image_dbd3df.png */
+        .sign-icon {
+            width: 150px;
+            height: 150px;
+            border: 15px solid var(--rojo-alerta);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .sign-icon::before {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 15px;
+            background-color: var(--rojo-alerta);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
+
+        .hand-icon {
+            font-size: 80px;
+            line-height: 150px;
+            color: var(--negro);
+        }
+
+        .banner-rojo {
+            background-color: var(--rojo-alerta);
+            color: var(--blanco);
+            padding: 20px;
+            margin: 10px -40px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .banner-rojo h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+
+        .message {
+            color: var(--negro);
+            margin: 20px 0;
+            font-weight: 500;
+        }
+
+        .btn-regresar {
+            background-color: var(--negro);
+            color: var(--blanco);
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .btn-regresar:hover {
+            background-color: #333;
+            transform: scale(1.05);
+        }
+
+        /* Animación de alerta */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px rgba(211, 47, 47, 0.4); }
+            50% { box-shadow: 0 0 50px rgba(211, 47, 47, 0.8); }
+            100% { box-shadow: 0 0 20px rgba(211, 47, 47, 0.4); }
+        }
+        .container { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Icono de Prohibido -->
+        <div class="sign-icon">
+            <span class="hand-icon">✋</span>
+        </div>
+
+        <div class="banner-rojo">
+            <h1>ACCESO RESTRINGIDO</h1>
+        </div>
+
+        <div class="message">
+            <p>Se ha registrado un intento de navegación no autorizada.</p>
+            <p>Su actividad está siendo monitoreada por el sistema central.</p>
+        </div>
+
+        <a href="/" class="btn-regresar">REGRESAR AL LOGIN</a>
+    </div>
+
+</body>
+</html>
